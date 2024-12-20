@@ -9,10 +9,14 @@ import { AUTO, Game } from 'phaser';
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
-  width: 1024,
+   width: 1024, // 64 blocks x 16 pixels
+   height: 256, // 16 blocks x 16 pixels
   //   height: 768,
   //   width: 4096,
-  height: 256,
+//   width: 171,
+//   height: 160,
+//   zoom: 3, // Since we're working with 16x16 pixel tiles, let's scale up the canvas by 3x
+//   pixelArt: true, // Force the game to scale images up crisply
   parent: 'game-container',
   backgroundColor: '0xffffff',
   scene: [Boot, Preloader, MainMenu, MainGame, GameOver],

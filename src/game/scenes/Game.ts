@@ -1,5 +1,6 @@
 import { EventBus } from '@/game/EventBus';
 import { Scene } from 'phaser';
+import levelData from '@/levels/level_1.json';
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
@@ -17,8 +18,26 @@ export class Game extends Scene {
     // this.camera = this.cameras.main;
     // this.camera.setBackgroundColor(0x00ff00);
 
-    this.background = this.add.image(512, 384, 'background');
-    this.background.setAlpha(0.5);
+    // TODO: is there a better way than saving as JSON?
+    const level = levelData;
+
+    // When loading from an array, make sure to specify the tileWidth and tileHeight
+    const map = this.make.tilemap({
+      data: level,
+      //   tileWidth: 16,
+      //   tileHeight: 16,
+      tileWidth: 8,
+      tileHeight: 8,
+    });
+    const tiles = map.addTilesetImage('tiles');
+    if (tiles) {
+      const layer = map.createLayer(0, tiles, 0, 0);
+    } else {
+      console.error('Failed to load tileset');
+    }
+
+    // this.background = this.add.image(512, 384, 'background');
+    // this.background.setAlpha(0.5);
 
     // create group to hold still assets i.e. the platforms
     const platforms = this.physics.add.staticGroup();
