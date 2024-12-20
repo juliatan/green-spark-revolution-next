@@ -26,14 +26,20 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets');
 
-    // this.load.image('logo', 'logo.png');
+    this.load.image('background', 'bg.png');
 
     this.load.image('ground', 'ground.png');
     this.load.image('island', 'island.png');
     this.load.image('star', 'star.png');
     this.load.spritesheet('player', 'player.png', {
-      frameWidth: 32,
-      frameHeight: 48,
+      frameWidth: 50,
+      frameHeight: 50,
+      // frameWidth: 32,
+      // frameHeight: 48,
+    });
+    this.load.spritesheet('robot', 'robot.png', {
+      frameWidth: 75,
+      frameHeight: 75,
     });
   }
 
