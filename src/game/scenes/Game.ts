@@ -8,6 +8,7 @@ export class Game extends Scene {
   player: Phaser.Physics.Arcade.Sprite;
   robot: Phaser.Physics.Arcade.Sprite;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+  controls: Phaser.Cameras.Controls.FixedKeyControl;
 
   constructor() {
     super('Game');
@@ -60,6 +61,16 @@ export class Game extends Scene {
 
     // allow access to keyboard events
     this.cursors = this.input.keyboard.createCursorKeys();
+    
+    // const camera = this.cameras.main;
+    // this.controls = new Phaser.Cameras.Controls.FixedKeyControl({
+    //   camera: camera,
+    //   left: this.cursors.left,
+    //   right: this.cursors.right,
+    //   up: this.cursors.up,
+    //   down: this.cursors.down,
+    //   speed: 0.5,
+    // });
 
     // create player animation
     this.anims.create({
@@ -140,7 +151,7 @@ export class Game extends Scene {
     EventBus.emit('current-scene-ready', this);
   }
 
-  update() {
+  update(time: number, delta: number) {
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
       this.player.anims.play('playerMoveLeft', true); // true sets animation to loop
@@ -156,6 +167,8 @@ export class Game extends Scene {
     if (this.cursors.up.isDown && this.player.body?.touching.down) {
       this.player.setVelocityY(-230);
     }
+
+    // this.controls.update(delta);
   }
 
   changeScene() {
