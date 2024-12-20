@@ -46,6 +46,9 @@ export class Game extends Scene {
     //   faceColor: new Phaser.Display.Color(40, 39, 37, 255), // Color of colliding face edges
     // });
 
+    // Set the world bounds to match map size
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
     // create group to hold still assets i.e. the platforms
     const platforms = this.physics.add.staticGroup();
 
@@ -74,16 +77,18 @@ export class Game extends Scene {
       throw new Error('Keyboard input is not available');
     }
 
-    // For paning through the map
-    // const camera = this.cameras.main;
-    // this.controls = new Phaser.Cameras.Controls.FixedKeyControl({
-    //   camera: camera,
-    //   left: this.cursors.left,
-    //   right: this.cursors.right,
-    //   up: this.cursors.up,
-    //   down: this.cursors.down,
-    //   speed: 0.5,
-    // });
+    // For scrolling through the map
+    this.camera = this.cameras.main; // get main camera
+    this.camera.startFollow(this.player); // Set camera to follow the player
+
+    // Set camera bounds to match the map size
+    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    // Add some lerp (smoothing) to the camera movement
+    this.camera.setLerp(0.1, 0.1);
+
+    // Set camera dead zone - area where player can move without moving camera
+    this.camera.setDeadzone(200, 256);
 
     // create player animation
     this.anims.create({
@@ -122,7 +127,7 @@ export class Game extends Scene {
     });
 
     // create robot animation
-    this.robot.setVelocityX(-360);
+    this.robot.setVelocityX(-60);
     this.robot.anims.play('robotMoveLeft', true);
 
     // add stars
@@ -167,12 +172,12 @@ export class Game extends Scene {
 
     // Add collision between bullets and layer (if you want bullets to collide with the terrain)
     this.physics.add.collider(this.bullets, this.robot, (bullet) => {
-        (bullet).destroy();
-        this.robot.destroy();
+      bullet.destroy();
+      this.robot.destroy();
     });
 
     this.physics.add.collider(this.bullets, this.layer, (bullet) => {
-      (bullet).destroy();
+      bullet.destroy();
     });
 
     EventBus.emit('current-scene-ready', this);
@@ -192,7 +197,7 @@ export class Game extends Scene {
 
     // if player is blocked on its bottom, and up arrow pressed, push to top (gravity will be simulated)
     if (this.cursors.up.isDown && this.player.body?.blocked.down) {
-      this.player.setVelocityY(-130);
+      this.player.setVelocityY(-200);
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
@@ -218,8 +223,6 @@ export class Game extends Scene {
         });
       }
     }
-
-    // this.controls.update(delta);
   }
 
   changeScene() {
