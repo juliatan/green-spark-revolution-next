@@ -10,6 +10,8 @@ export class Game extends Scene {
   robot: Phaser.Physics.Arcade.Sprite;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   controls: Phaser.Cameras.Controls.FixedKeyControl;
+  bullets: Phaser.Physics.Arcade.Group;
+  keyA: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super('Game');
@@ -153,6 +155,26 @@ export class Game extends Scene {
       this
     );
 
+    // Create bullets group
+    this.bullets = this.physics.add.group({
+      defaultKey: 'bullet', // sprite key for bullets
+      maxSize: 10, // maximum number of bullets allowed at once
+      allowGravity: false,
+    });
+
+    // Add 'A' key binding
+    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+
+    // Add collision between bullets and layer (if you want bullets to collide with the terrain)
+    this.physics.add.collider(this.bullets, this.robot, (bullet) => {
+        (bullet).destroy();
+        this.robot.destroy();
+    });
+
+    this.physics.add.collider(this.bullets, this.layer, (bullet) => {
+      (bullet).destroy();
+    });
+
     EventBus.emit('current-scene-ready', this);
   }
 
@@ -171,6 +193,30 @@ export class Game extends Scene {
     // if player is blocked on its bottom, and up arrow pressed, push to top (gravity will be simulated)
     if (this.cursors.up.isDown && this.player.body?.blocked.down) {
       this.player.setVelocityY(-130);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
+      // Get a bullet from the pool
+      const bullet = this.bullets.get(
+        this.player.x,
+        this.player.y,
+        'bullet'
+      ) as Phaser.Physics.Arcade.Sprite;
+
+      if (bullet) {
+        bullet.setActive(true);
+        bullet.setVisible(true);
+
+        // Set bullet velocity based on player direction
+        const direction = this.player.flipX ? -1 : 1; // TODO: doesn't work
+        const speed = 400;
+        bullet.setVelocityX(speed * direction);
+
+        // Destroy bullet after some time
+        this.time.delayedCall(1500, () => {
+          bullet.destroy();
+        });
+      }
     }
 
     // this.controls.update(delta);
