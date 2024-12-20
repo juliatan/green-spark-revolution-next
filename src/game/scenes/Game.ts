@@ -68,7 +68,6 @@ export class Game extends Scene {
 
     // add collider physics rule between player and layer
     this.physics.add.collider(this.player, this.layer);
-    this.physics.add.collider(this.robot, this.layer);
 
     // allow access to keyboard events
     if (this.input?.keyboard) {
@@ -130,6 +129,14 @@ export class Game extends Scene {
     this.robot.setVelocityX(-60);
     this.robot.anims.play('robotMoveLeft', true);
 
+    this.physics.add.collider(
+      this.robot,
+      this.layer,
+      this.handleRobotCollision,
+      undefined,
+      this
+    );
+
     // add stars
     const stars = this.physics.add.group();
     // drop from sky, y=0
@@ -170,11 +177,21 @@ export class Game extends Scene {
     // Add 'A' key binding
     this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
 
-    // Add collision between bullets and layer (if you want bullets to collide with the terrain)
-    this.physics.add.collider(this.bullets, this.robot, (bullet) => {
-      bullet.destroy();
-      this.robot.destroy();
-    });
+    // Add collision between bullets and layer/robot
+    this.physics.add.overlap(
+      this.robot,
+      this.bullets,
+      (robot, bullet) => {
+        bullet.destroy();
+
+        // TODO: Fix typescript once we know what type the robot will be
+        robot.setTint(0xff0000);
+        robot.setVelocity(0, 0);
+        robot.anims.stop();
+      },
+      undefined,
+      this
+    );
 
     this.physics.add.collider(this.bullets, this.layer, (bullet) => {
       bullet.destroy();
@@ -227,5 +244,15 @@ export class Game extends Scene {
 
   changeScene() {
     this.scene.start('GameOver');
+  }
+
+  handleRobotCollision(robot: Phaser.Physics.Arcade.Sprite) {
+    if (robot.body?.blocked.left) {
+      robot.anims.play('robotMoveRight', true);
+      robot.setVelocityX(60); // Move right
+    } else if (robot.body?.blocked.right) {
+      robot.setVelocityX(-60); // Move left
+      robot.anims.play('robotMoveLeft', true);
+    }
   }
 }
