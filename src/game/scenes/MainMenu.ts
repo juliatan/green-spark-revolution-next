@@ -1,6 +1,5 @@
+import { EventBus } from '@/game/EventBus';
 import { GameObjects, Scene } from 'phaser';
-
-import { EventBus } from '../EventBus';
 
 export class MainMenu extends Scene {
   background: GameObjects.Image;
@@ -30,8 +29,6 @@ export class MainMenu extends Scene {
     //     .setDepth(100);
     EventBus.emit('current-scene-ready', this);
   }
-
-  
 
   //   changeScene() {
   //     if (this.logoTween) {

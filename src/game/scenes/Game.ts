@@ -1,4 +1,4 @@
-import { EventBus } from '../EventBus';
+import { EventBus } from '@/game/EventBus';
 import { Scene } from 'phaser';
 
 export class Game extends Scene {
@@ -146,7 +146,7 @@ export class Game extends Scene {
     }
   }
 
-    changeScene() {
-      this.scene.start('GameOver');
-    }
+  changeScene() {
+    this.scene.start('GameOver');
+  }
 }
