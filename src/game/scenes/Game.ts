@@ -5,6 +5,7 @@ export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
   gameText: Phaser.GameObjects.Text;
+  layer: Phaser.Tilemaps.TilemapLayer;
   player: Phaser.Physics.Arcade.Sprite;
   robot: Phaser.Physics.Arcade.Sprite;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -16,35 +17,39 @@ export class Game extends Scene {
 
   preload() {
     this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
+    //   this.load.tilemapTiledJSON('map', '../assets/tilemaps/tuxemon-town.json');
   }
 
   create() {
-    // this.camera = this.cameras.main;
-    // this.camera.setBackgroundColor(0x00ff00);
-
     const map = this.make.tilemap({ key: 'map', tileWidth: 8, tileHeight: 8 });
-    const tiles = map.addTilesetImage('tiles');
-    if (tiles) {
-      const layer = map.createLayer(0, tiles, 0, 0); // layer index, tileset, x, y
-    } else {
-      console.error('Failed to load tileset');
+    const tileset = map.addTilesetImage('tiles');
+
+    if (!tileset) {
+      throw new Error('Failed to load tileset image');
     }
 
-    // this.background = this.add.image(512, 384, 'background');
-    // this.background.setAlpha(0.5);
+    const createdLayer = map.createLayer(0, tileset, 0, 0); // layer name or index, tileset, x, y
+
+    if (!createdLayer) {
+      throw new Error('Failed to load tileset image');
+    }
+
+    this.layer = createdLayer;
+    this.layer.setCollisionBetween(1, 6); // set collision for all tiles in range
+
+    // const debugGraphics = this.add.graphics().setAlpha(0.75);
+    // this.layer.renderDebug(debugGraphics, {
+    //   tileColor: null, // Color of non-colliding tiles
+    //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+    //   faceColor: new Phaser.Display.Color(40, 39, 37, 255), // Color of colliding face edges
+    // });
 
     // create group to hold still assets i.e. the platforms
     const platforms = this.physics.add.staticGroup();
 
     // add ground
-    // platforms.create(400, 588, 'ground');
-    platforms.create(400, 250, 'ground');
-
-    // add floating platform on x, y coordinates relative to top left corner, middle of image
+    // platforms.create(400, 250, 'ground');
     platforms.create(600, 100, 'island');
-    platforms.create(50, 150, 'island');
-    platforms.create(650, 200, 'island');
-    platforms.create(250, 220, 'island');
 
     // add player
     this.player = this.physics.add.sprite(380, 200, 'player');
@@ -55,13 +60,19 @@ export class Game extends Scene {
     this.robot = this.physics.add.sprite(1000, 200, 'robot');
     this.robot.setBounce(0.2);
     this.robot.setCollideWorldBounds(true);
-    // add collider physics rule between player and all types of platforms
-    this.physics.add.collider(this.player, platforms);
-    this.physics.add.collider(this.robot, platforms);
+
+    // add collider physics rule between player and layer
+    this.physics.add.collider(this.player, this.layer);
+    this.physics.add.collider(this.robot, this.layer);
 
     // allow access to keyboard events
-    this.cursors = this.input.keyboard.createCursorKeys();
-    
+    if (this.input?.keyboard) {
+      this.cursors = this.input.keyboard.createCursorKeys();
+    } else {
+      throw new Error('Keyboard input is not available');
+    }
+
+    // For paning through the map
     // const camera = this.cameras.main;
     // this.controls = new Phaser.Cameras.Controls.FixedKeyControl({
     //   camera: camera,
@@ -98,7 +109,7 @@ export class Game extends Scene {
       key: 'robotMoveLeft',
       frames: this.anims.generateFrameNumbers('robot', { start: 0, end: 7 }),
       frameRate: 10,
-      repeat: -1, // infinitely repeated
+      repeat: -1,
     });
 
     this.anims.create({
@@ -115,14 +126,8 @@ export class Game extends Scene {
     // add stars
     const stars = this.physics.add.group();
     // drop from sky, y=0
-    stars.create(22, 0, 'star');
-    stars.create(122, 0, 'star');
-    stars.create(222, 0, 'star');
-    stars.create(322, 0, 'star');
     stars.create(422, 0, 'star');
     stars.create(522, 0, 'star');
-    stars.create(622, 0, 'star');
-    stars.create(722, 0, 'star');
 
     this.physics.add.collider(stars, platforms);
 
@@ -163,9 +168,9 @@ export class Game extends Scene {
       this.player.anims.play('playerIsStill');
     }
 
-    // if player sits on bottom, and up arrow pressed, push to top (gravity will be simulated)
-    if (this.cursors.up.isDown && this.player.body?.touching.down) {
-      this.player.setVelocityY(-230);
+    // if player is blocked on its bottom, and up arrow pressed, push to top (gravity will be simulated)
+    if (this.cursors.up.isDown && this.player.body?.blocked.down) {
+      this.player.setVelocityY(-130);
     }
 
     // this.controls.update(delta);
