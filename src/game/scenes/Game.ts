@@ -166,7 +166,7 @@ export class Game extends Scene {
     this.physics.add.overlap(
       this.robot,
       this.bullets,
-      (robot, bullet) => {
+      (robot: any, bullet: any) => {
         bullet.destroy();
 
         // TODO: Fix typescript once we know what type the robot will be
@@ -231,7 +231,8 @@ export class Game extends Scene {
     this.scene.start('GameOver');
   }
 
-  handleRobotCollision(robot: Phaser.Physics.Arcade.Sprite) {
+  // TODO: fix Typescript
+  handleRobotCollision(robot: any) {
     if (robot.body?.blocked.left) {
       robot.anims.play('robotMoveRight', true);
       robot.setVelocityX(60); // Move right
