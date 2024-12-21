@@ -1,3 +1,4 @@
+import { Player } from '@/entities/Player';
 import { EventBus } from '@/game/EventBus';
 import { Scene } from 'phaser';
 
@@ -6,12 +7,13 @@ export class Game extends Scene {
   background: Phaser.GameObjects.Image;
   gameText: Phaser.GameObjects.Text;
   layer: Phaser.Tilemaps.TilemapLayer;
-  player: Phaser.Physics.Arcade.Sprite;
   robot: Phaser.Physics.Arcade.Sprite;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   controls: Phaser.Cameras.Controls.FixedKeyControl;
   bullets: Phaser.Physics.Arcade.Group;
   keyA: Phaser.Input.Keyboard.Key;
+
+  private player: Player
 
   constructor() {
     super('Game');
@@ -21,7 +23,12 @@ export class Game extends Scene {
     this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
   }
 
+  private setupEntities() {
+    this.player = new Player(this, 380, 200);
+  }
+
   create() {
+
     const map = this.make.tilemap({ key: 'map', tileWidth: 8, tileHeight: 8 });
     const tileset = map.addTilesetImage('tiles');
 
@@ -49,13 +56,9 @@ export class Game extends Scene {
     // Set the world bounds to match map size
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    // create group to hold still assets i.e. the platforms
-    const platforms = this.physics.add.staticGroup();
 
-    // add player
-    this.player = this.physics.add.sprite(380, 200, 'player');
-    this.player.setBounce(0.2);
-    this.player.setCollideWorldBounds(true); // otherwise player falls through
+    this.setupEntities();
+
 
     // add robot
     this.robot = this.physics.add.sprite(1000, 200, 'robot');
@@ -84,27 +87,6 @@ export class Game extends Scene {
 
     // Set camera dead zone - area where player can move without moving camera
     this.camera.setDeadzone(200, 256);
-
-    // create player animation
-    this.anims.create({
-      key: 'playerIsStill',
-      frames: [{ key: 'player', frame: 8 }],
-      frameRate: 20,
-    });
-
-    this.anims.create({
-      key: 'playerMoveLeft',
-      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 7 }),
-      frameRate: 10,
-      repeat: -1, // infinitely repeated
-    });
-
-    this.anims.create({
-      key: 'playerMoveRight',
-      frames: this.anims.generateFrameNumbers('player', { start: 8, end: 15 }),
-      frameRate: 10,
-      repeat: -1,
-    });
 
     // create robot animation
     this.anims.create({
@@ -186,21 +168,8 @@ export class Game extends Scene {
   }
 
   update(time: number, delta: number) {
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-160);
-      this.player.anims.play('playerMoveLeft', true); // true sets animation to loop
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(160);
-      this.player.anims.play('playerMoveRight', true);
-    } else {
-      this.player.setVelocityX(0);
-      this.player.anims.play('playerIsStill');
-    }
 
-    // if player is blocked on its bottom, and up arrow pressed, push to top (gravity will be simulated)
-    if (this.cursors.up.isDown && this.player.body?.blocked.down) {
-      this.player.setVelocityY(-200);
-    }
+    this.player.update(this.cursors);
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
       // Get a bullet from the pool
