@@ -1,4 +1,5 @@
 import { Player } from '@/entities/Player';
+import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { Scene } from 'phaser';
 
@@ -7,13 +8,13 @@ export class Game extends Scene {
   background: Phaser.GameObjects.Image;
   gameText: Phaser.GameObjects.Text;
   layer: Phaser.Tilemaps.TilemapLayer;
-  robot: Phaser.Physics.Arcade.Sprite;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   controls: Phaser.Cameras.Controls.FixedKeyControl;
   bullets: Phaser.Physics.Arcade.Group;
   keyA: Phaser.Input.Keyboard.Key;
 
-  private player: Player
+  private player: Player;
+  private robot: Robot;
 
   constructor() {
     super('Game');
@@ -25,10 +26,10 @@ export class Game extends Scene {
 
   private setupEntities() {
     this.player = new Player(this, 380, 200);
+    this.robot = new Robot(this, 1000, 200);
   }
 
   create() {
-
     const map = this.make.tilemap({ key: 'map', tileWidth: 8, tileHeight: 8 });
     const tileset = map.addTilesetImage('tiles');
 
@@ -56,14 +57,9 @@ export class Game extends Scene {
     // Set the world bounds to match map size
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-
     this.setupEntities();
 
-
     // add robot
-    this.robot = this.physics.add.sprite(1000, 200, 'robot');
-    this.robot.setBounce(0.2);
-    this.robot.setCollideWorldBounds(true);
 
     // add collider physics rule between player and layer
     this.physics.add.collider(this.player, this.layer);
@@ -89,23 +85,9 @@ export class Game extends Scene {
     this.camera.setDeadzone(200, 256);
 
     // create robot animation
-    this.anims.create({
-      key: 'robotMoveLeft',
-      frames: this.anims.generateFrameNumbers('robot', { start: 0, end: 7 }),
-      frameRate: 10,
-      repeat: -1,
-    });
 
-    this.anims.create({
-      key: 'robotMoveRight',
-      frames: this.anims.generateFrameNumbers('robot', { start: 8, end: 15 }),
-      frameRate: 10,
-      repeat: -1,
-    });
 
     // create robot animation
-    this.robot.setVelocityX(-60);
-    this.robot.anims.play('robotMoveLeft', true);
 
     this.physics.add.collider(
       this.robot,
@@ -168,8 +150,8 @@ export class Game extends Scene {
   }
 
   update(time: number, delta: number) {
-
     this.player.update(this.cursors);
+    this.robot.update();
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
       // Get a bullet from the pool
