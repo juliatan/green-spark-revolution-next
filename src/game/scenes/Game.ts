@@ -19,7 +19,6 @@ export class Game extends Scene {
 
   preload() {
     this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
-    //   this.load.tilemapTiledJSON('map', '../assets/tilemaps/tuxemon-town.json');
   }
 
   create() {
@@ -39,6 +38,7 @@ export class Game extends Scene {
     this.layer = createdLayer;
     this.layer.setCollisionBetween(1, 6); // set collision for all tiles in range
 
+    // Debugging collision tiles
     // const debugGraphics = this.add.graphics().setAlpha(0.75);
     // this.layer.renderDebug(debugGraphics, {
     //   tileColor: null, // Color of non-colliding tiles
@@ -51,10 +51,6 @@ export class Game extends Scene {
 
     // create group to hold still assets i.e. the platforms
     const platforms = this.physics.add.staticGroup();
-
-    // add ground
-    // platforms.create(400, 250, 'ground');
-    platforms.create(600, 100, 'island');
 
     // add player
     this.player = this.physics.add.sprite(380, 200, 'player');
@@ -137,31 +133,20 @@ export class Game extends Scene {
       this
     );
 
-    // add stars
-    const stars = this.physics.add.group();
-    // drop from sky, y=0
-    stars.create(422, 0, 'star');
-    stars.create(522, 0, 'star');
-
-    this.physics.add.collider(stars, platforms);
-
     // allow player to pick up stars
-    let score = 0;
-    const scoreText = this.add.text(16, 16, 'Stars: 0', {
+    let health = 4;
+    const healthText = this.add.text(16, 16, 'Health: 0', {
       fontSize: '32px',
       color: '#000',
     });
 
     this.physics.add.overlap(
       this.player,
-      stars,
-      // hide star when overlap
+      this.robot,
       (player, star) => {
-        const starSprite = star as Phaser.Physics.Arcade.Image;
-        starSprite.disableBody(true, true);
         // increment star counter
-        score += 1;
-        scoreText.setText('Stars: ' + score);
+        health -= 1;
+        healthText.setText('Health: ' + health);
       },
       undefined,
       this
