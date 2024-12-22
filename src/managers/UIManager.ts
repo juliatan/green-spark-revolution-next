@@ -1,4 +1,4 @@
-import { Scene } from "phaser";
+import { Scene } from 'phaser';
 
 export class UIManager {
   private scene: Scene;
@@ -12,10 +12,13 @@ export class UIManager {
   }
 
   private createHealthText(): void {
-    this.healthText = this.scene.add.text(16, 16, 'Health: 4  ', {
-      fontSize: '32px',
-      color: '#000',
-    });
+    this.healthText = this.scene.add
+      .text(16, 16, 'Health: 4  ', {
+        fontSize: '32px',
+        color: '#000',
+      })
+      .setScrollFactor(0) // Set scroll factor to 0 to keep text fixed on screen
+      .setDepth(1); // Set depth to ensure text is rendered on top of everything
   }
 
   updateScore(points: number): void {

@@ -59,12 +59,6 @@ export class Game extends Scene {
     // Set camera dead zone - area where player can move without moving camera
     this.camera.setDeadzone(200, 256);
 
-    // let health = 4;
-    // const healthText = this.add.text(16, 16, 'Health: 0', {
-    //   fontSize: '32px',
-    //   color: '#000',
-    // });
-
     this.physics.add.overlap(
       this.player,
       this.robot,
