@@ -3,13 +3,13 @@ import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { BulletManager } from '@/managers/BulletManager';
 import { CollisionManager } from '@/managers/CollisionManager';
+import { InputManager } from '@/managers/InputManager';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
 import { Scene } from 'phaser';
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
-  keyA: Phaser.Input.Keyboard.Key;
 
   private player: Player;
   private robot: Robot;
@@ -17,7 +17,7 @@ export class Game extends Scene {
   private bulletManager: BulletManager;
   private uiManager: UIManager;
   private collisionManager: CollisionManager;
-  private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+  private inputManager: InputManager
 
   constructor() {
     super('Game');
@@ -32,7 +32,6 @@ export class Game extends Scene {
   create() {
     this.setupLevel();
     this.setupEntities();
-    this.setupControls();
     this.setupCamera();
     this.setupCollisionsAndOverlaps();
 
@@ -48,14 +47,10 @@ export class Game extends Scene {
   }
 
   update(time: number, delta: number) {
-    this.player.update(this.cursors);
+    this.player.update(this.inputManager.cursors);
     this.robot.update();
 
-    if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
-      // Set bullet velocity based on player direction
-      const direction = this.player.flipX ? -1 : 1; // TODO: doesn't work
-      this.bulletManager.shoot(this.player.x, this.player.y, direction);
-    }
+    this.inputManager.handleShoot(this.player, this.bulletManager);
   }
 
   changeScene() {
@@ -66,6 +61,7 @@ export class Game extends Scene {
     this.bulletManager = new BulletManager(this);
     this.uiManager = new UIManager(this);
     this.collisionManager = new CollisionManager(this);
+    this.inputManager = new InputManager(this);
   }
 
   private setupLevel(): void {
@@ -75,14 +71,6 @@ export class Game extends Scene {
   private setupEntities() {
     this.player = new Player(this, 380, 200);
     this.robot = new Robot(this, 1000, 200);
-  }
-
-  private setupControls(): void {
-    if (!this.input?.keyboard) {
-      throw new Error('Keyboard input is not available');
-    }
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   }
 
   private setupCamera(): void {
