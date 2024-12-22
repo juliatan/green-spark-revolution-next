@@ -1,13 +1,13 @@
 import { Player } from '@/entities/Player';
 import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
+import { LevelManager } from '@/managers/LevelManager';
 import { Scene } from 'phaser';
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
   gameText: Phaser.GameObjects.Text;
-  layer: Phaser.Tilemaps.TilemapLayer;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   controls: Phaser.Cameras.Controls.FixedKeyControl;
   bullets: Phaser.Physics.Arcade.Group;
@@ -15,54 +15,44 @@ export class Game extends Scene {
 
   private player: Player;
   private robot: Robot;
+  private levelManager: LevelManager
 
   constructor() {
     super('Game');
   }
 
   preload() {
-    this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
+        this.initialiseManagers();
+
+    this.levelManager.preloadAssets();
+    // this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
   }
+  
+    private initialiseManagers(): void {
+      this.levelManager = new LevelManager(this);
+    }
+  
+    private setupLevel(): void {
+      this.levelManager.createLevel();
+    }
 
   private setupEntities() {
     this.player = new Player(this, 380, 200);
     this.robot = new Robot(this, 1000, 200);
-  }
+  } 
 
   create() {
-    const map = this.make.tilemap({ key: 'map', tileWidth: 8, tileHeight: 8 });
-    const tileset = map.addTilesetImage('tiles');
 
-    if (!tileset) {
-      throw new Error('Failed to load tileset image');
-    }
-
-    const createdLayer = map.createLayer(0, tileset, 0, 0); // layer name or index, tileset, x, y
-
-    if (!createdLayer) {
-      throw new Error('Failed to load tileset image');
-    }
-
-    this.layer = createdLayer;
-    this.layer.setCollisionBetween(1, 6); // set collision for all tiles in range
-
-    // Debugging collision tiles
-    // const debugGraphics = this.add.graphics().setAlpha(0.75);
-    // this.layer.renderDebug(debugGraphics, {
-    //   tileColor: null, // Color of non-colliding tiles
-    //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-    //   faceColor: new Phaser.Display.Color(40, 39, 37, 255), // Color of colliding face edges
-    // });
-
-    // Set the world bounds to match map size
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
+    this.setupLevel();
     this.setupEntities();
 
-    // add robot
 
+    // Set the world bounds to match map size
+    this.physics.world.setBounds(0, 0, this.levelManager.map.widthInPixels, this.levelManager.map.heightInPixels);
+
+    
     // add collider physics rule between player and layer
-    this.physics.add.collider(this.player, this.layer);
+    this.physics.add.collider(this.player, this.levelManager.layer);
 
     // allow access to keyboard events
     if (this.input?.keyboard) {
@@ -76,7 +66,7 @@ export class Game extends Scene {
     this.camera.startFollow(this.player); // Set camera to follow the player
 
     // Set camera bounds to match the map size
-    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.camera.setBounds(0, 0, this.levelManager.map.widthInPixels, this.levelManager.map.heightInPixels);
 
     // Add some lerp (smoothing) to the camera movement
     this.camera.setLerp(0.1, 0.1);
@@ -85,19 +75,14 @@ export class Game extends Scene {
     this.camera.setDeadzone(200, 256);
 
     // create robot animation
-
-
-    // create robot animation
-
     this.physics.add.collider(
       this.robot,
-      this.layer,
+      this.levelManager.layer,
       this.handleRobotCollision,
       undefined,
       this
     );
 
-    // allow player to pick up stars
     let health = 4;
     const healthText = this.add.text(16, 16, 'Health: 0', {
       fontSize: '32px',
@@ -142,7 +127,7 @@ export class Game extends Scene {
       this
     );
 
-    this.physics.add.collider(this.bullets, this.layer, (bullet) => {
+    this.physics.add.collider(this.bullets, this.levelManager.layer, (bullet) => {
       bullet.destroy();
     });
 
