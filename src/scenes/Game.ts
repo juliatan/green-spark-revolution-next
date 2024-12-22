@@ -3,63 +3,35 @@ import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { BulletManager } from '@/managers/BulletManager';
 import { LevelManager } from '@/managers/LevelManager';
+import { UIManager } from '@/managers/UIManager';
 import { Scene } from 'phaser';
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
-  background: Phaser.GameObjects.Image;
-  gameText: Phaser.GameObjects.Text;
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  controls: Phaser.Cameras.Controls.FixedKeyControl;
-  bullets: Phaser.Physics.Arcade.Group;
   keyA: Phaser.Input.Keyboard.Key;
 
   private player: Player;
   private robot: Robot;
   private levelManager: LevelManager;
   private bulletManager: BulletManager;
+  private uiManager: UIManager;
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {
     super('Game');
   }
 
   preload() {
-    this.initialiseManagers();
-    this.levelManager.preloadAssets();
-  }
-
-  private initialiseManagers(): void {
     this.levelManager = new LevelManager(this);
-    this.bulletManager = new BulletManager(this);
-  }
-
-  private setupLevel(): void {
-    this.levelManager.createLevel();
-  }
-
-  private setupEntities() {
-    this.player = new Player(this, 380, 200);
-    this.robot = new Robot(this, 1000, 200);
-  }
-
-  private setupCollisions() {
-    this.physics.add.collider(this.player, this.levelManager.layer);
-
-    this.physics.add.collider(
-      this.robot,
-      this.levelManager.layer,
-      this.handleRobotCollision,
-      undefined,
-      this
-    );
-
-    this.bulletManager.setupCollisions(this.robot, this.levelManager.layer);
+    this.levelManager.preloadAssets();
+    this.initialiseManagers();
   }
 
   create() {
     this.setupLevel();
     this.setupEntities();
     this.setupCollisions();
+    this.setupControls();
 
     // Set the world bounds to match map size
     this.physics.world.setBounds(
@@ -68,14 +40,6 @@ export class Game extends Scene {
       this.levelManager.map.widthInPixels,
       this.levelManager.map.heightInPixels
     );
-
-
-    // allow access to keyboard events
-    if (this.input?.keyboard) {
-      this.cursors = this.input.keyboard.createCursorKeys();
-    } else {
-      throw new Error('Keyboard input is not available');
-    }
 
     // For scrolling through the map
     this.camera = this.cameras.main; // get main camera
@@ -95,27 +59,21 @@ export class Game extends Scene {
     // Set camera dead zone - area where player can move without moving camera
     this.camera.setDeadzone(200, 256);
 
-    let health = 4;
-    const healthText = this.add.text(16, 16, 'Health: 0', {
-      fontSize: '32px',
-      color: '#000',
-    });
+    // let health = 4;
+    // const healthText = this.add.text(16, 16, 'Health: 0', {
+    //   fontSize: '32px',
+    //   color: '#000',
+    // });
 
     this.physics.add.overlap(
       this.player,
       this.robot,
       (player, star) => {
-        // increment star counter
-        health -= 1;
-        healthText.setText('Health: ' + health);
+        this.uiManager.updateScore(1);
       },
       undefined,
       this
     );
-
-
-    // Add 'A' key binding
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
 
     EventBus.emit('current-scene-ready', this);
   }
@@ -144,5 +102,41 @@ export class Game extends Scene {
       robot.setVelocityX(-60); // Move left
       robot.anims.play('robotMoveLeft', true);
     }
+  }
+
+  private initialiseManagers(): void {
+    this.bulletManager = new BulletManager(this);
+    this.uiManager = new UIManager(this);
+  }
+
+  private setupLevel(): void {
+    this.levelManager.createLevel();
+  }
+
+  private setupEntities() {
+    this.player = new Player(this, 380, 200);
+    this.robot = new Robot(this, 1000, 200);
+  }
+
+  private setupCollisions() {
+    this.physics.add.collider(this.player, this.levelManager.layer);
+
+    this.physics.add.collider(
+      this.robot,
+      this.levelManager.layer,
+      this.handleRobotCollision,
+      undefined,
+      this
+    );
+
+    this.bulletManager.setupCollisions(this.robot, this.levelManager.layer);
+  }
+
+  private setupControls(): void {
+    if (!this.input?.keyboard) {
+      throw new Error('Keyboard input is not available');
+    }
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   }
 }
