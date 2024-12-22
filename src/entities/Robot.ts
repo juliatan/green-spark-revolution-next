@@ -3,14 +3,17 @@ export class Robot extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, 'robot');
     this.init();
     this.createAnimations();
+    this.anims.play('robotMoveLeft', true);
   }
+
   private init(): void {
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
     this.setBounce(0.2);
     this.setCollideWorldBounds(true);
-    this.setVelocityX(-60);
+    this.setVelocityX(-60); // automatically start walking
   }
+
   private createAnimations(): void {
     this.anims.create({
       key: 'robotMoveLeft',
@@ -28,6 +31,12 @@ export class Robot extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(): void {
-    this.anims.play('robotMoveLeft', true);
+    if (this.body) {
+      if (this.body.velocity.x > 0) {
+        this.anims.play('robotMoveRight', true);
+      } else if (this.body.velocity.x < 0) {
+        this.anims.play('robotMoveLeft', true);
+      }
+    }
   }
 }

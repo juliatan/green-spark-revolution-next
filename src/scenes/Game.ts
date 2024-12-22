@@ -62,7 +62,7 @@ export class Game extends Scene {
     this.physics.add.overlap(
       this.player,
       this.robot,
-      (player, star) => {
+      (player, robot) => {
         this.uiManager.updateScore(1);
       },
       undefined,
@@ -85,17 +85,6 @@ export class Game extends Scene {
 
   changeScene() {
     this.scene.start('GameOver');
-  }
-
-  // TODO: fix Typescript
-  handleRobotCollision(robot: any) {
-    if (robot.body?.blocked.left) {
-      robot.anims.play('robotMoveRight', true);
-      robot.setVelocityX(60); // Move right
-    } else if (robot.body?.blocked.right) {
-      robot.setVelocityX(-60); // Move left
-      robot.anims.play('robotMoveLeft', true);
-    }
   }
 
   private initialiseManagers(): void {
@@ -132,5 +121,14 @@ export class Game extends Scene {
     }
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  }
+
+  // TODO: fix Typescript
+  handleRobotCollision(robot: any) {
+    if (robot.body?.blocked.left) {
+      robot.setVelocityX(60); // Move right
+    } else if (robot.body?.blocked.right) {
+      robot.setVelocityX(-60); // Move left
+    }
   }
 }
