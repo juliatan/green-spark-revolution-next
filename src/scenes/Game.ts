@@ -2,6 +2,7 @@ import { Player } from '@/entities/Player';
 import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { BulletManager } from '@/managers/BulletManager';
+import { CollisionManager } from '@/managers/CollisionManager';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
 import { Scene } from 'phaser';
@@ -15,6 +16,7 @@ export class Game extends Scene {
   private levelManager: LevelManager;
   private bulletManager: BulletManager;
   private uiManager: UIManager;
+  private collisionManager: CollisionManager;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {
@@ -30,8 +32,9 @@ export class Game extends Scene {
   create() {
     this.setupLevel();
     this.setupEntities();
-    this.setupCollisions();
     this.setupControls();
+    this.setupCamera();
+    this.setupCollisionsAndOverlaps();
 
     // Set the world bounds to match map size
     this.physics.world.setBounds(
@@ -39,34 +42,6 @@ export class Game extends Scene {
       0,
       this.levelManager.map.widthInPixels,
       this.levelManager.map.heightInPixels
-    );
-
-    // For scrolling through the map
-    this.camera = this.cameras.main; // get main camera
-    this.camera.startFollow(this.player); // Set camera to follow the player
-
-    // Set camera bounds to match the map size
-    this.camera.setBounds(
-      0,
-      0,
-      this.levelManager.map.widthInPixels,
-      this.levelManager.map.heightInPixels
-    );
-
-    // Add some lerp (smoothing) to the camera movement
-    this.camera.setLerp(0.1, 0.1);
-
-    // Set camera dead zone - area where player can move without moving camera
-    this.camera.setDeadzone(200, 256);
-
-    this.physics.add.overlap(
-      this.player,
-      this.robot,
-      (player, robot) => {
-        this.uiManager.updateScore(1);
-      },
-      undefined,
-      this
     );
 
     EventBus.emit('current-scene-ready', this);
@@ -90,6 +65,7 @@ export class Game extends Scene {
   private initialiseManagers(): void {
     this.bulletManager = new BulletManager(this);
     this.uiManager = new UIManager(this);
+    this.collisionManager = new CollisionManager(this);
   }
 
   private setupLevel(): void {
@@ -101,20 +77,6 @@ export class Game extends Scene {
     this.robot = new Robot(this, 1000, 200);
   }
 
-  private setupCollisions() {
-    this.physics.add.collider(this.player, this.levelManager.layer);
-
-    this.physics.add.collider(
-      this.robot,
-      this.levelManager.layer,
-      this.handleRobotCollision,
-      undefined,
-      this
-    );
-
-    this.bulletManager.setupCollisions(this.robot, this.levelManager.layer);
-  }
-
   private setupControls(): void {
     if (!this.input?.keyboard) {
       throw new Error('Keyboard input is not available');
@@ -123,12 +85,37 @@ export class Game extends Scene {
     this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   }
 
-  // TODO: fix Typescript
-  handleRobotCollision(robot: any) {
-    if (robot.body?.blocked.left) {
-      robot.setVelocityX(60); // Move right
-    } else if (robot.body?.blocked.right) {
-      robot.setVelocityX(-60); // Move left
-    }
+  private setupCamera(): void {
+    this.camera = this.cameras.main;
+    this.camera.startFollow(this.player);
+
+    // Set camera bounds to match the map size
+    this.camera.setBounds(
+      0,
+      0,
+      this.levelManager.map.widthInPixels,
+      this.levelManager.map.heightInPixels
+    );
+
+    // Add some lerp (smoothing) to the camera movement
+    this.camera.setLerp(0.1, 0.1);
+
+    // Set camera dead zone - area where player can move without moving camera
+    this.camera.setDeadzone(200, 256);
+  }
+
+  private setupCollisionsAndOverlaps(): void {
+    this.collisionManager.setupCollisions(
+      this.player,
+      this.robot,
+      this.levelManager.layer,
+      this.bulletManager
+    );
+
+    this.collisionManager.setupOverlaps(
+      this.player,
+      this.robot,
+      this.uiManager
+    );
   }
 }
