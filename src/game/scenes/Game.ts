@@ -1,6 +1,7 @@
 import { Player } from '@/entities/Player';
 import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
+import { BulletManager } from '@/managers/BulletManager';
 import { LevelManager } from '@/managers/LevelManager';
 import { Scene } from 'phaser';
 
@@ -15,44 +16,59 @@ export class Game extends Scene {
 
   private player: Player;
   private robot: Robot;
-  private levelManager: LevelManager
+  private levelManager: LevelManager;
+  private bulletManager: BulletManager;
 
   constructor() {
     super('Game');
   }
 
   preload() {
-        this.initialiseManagers();
-
+    this.initialiseManagers();
     this.levelManager.preloadAssets();
-    // this.load.tilemapCSV('map', '../assets/levels/level_1.csv');
   }
-  
-    private initialiseManagers(): void {
-      this.levelManager = new LevelManager(this);
-    }
-  
-    private setupLevel(): void {
-      this.levelManager.createLevel();
-    }
+
+  private initialiseManagers(): void {
+    this.levelManager = new LevelManager(this);
+    this.bulletManager = new BulletManager(this);
+  }
+
+  private setupLevel(): void {
+    this.levelManager.createLevel();
+  }
 
   private setupEntities() {
     this.player = new Player(this, 380, 200);
     this.robot = new Robot(this, 1000, 200);
-  } 
+  }
+
+  private setupCollisions() {
+    this.physics.add.collider(this.player, this.levelManager.layer);
+
+    this.physics.add.collider(
+      this.robot,
+      this.levelManager.layer,
+      this.handleRobotCollision,
+      undefined,
+      this
+    );
+
+    this.bulletManager.setupCollisions(this.robot, this.levelManager.layer);
+  }
 
   create() {
-
     this.setupLevel();
     this.setupEntities();
-
+    this.setupCollisions();
 
     // Set the world bounds to match map size
-    this.physics.world.setBounds(0, 0, this.levelManager.map.widthInPixels, this.levelManager.map.heightInPixels);
+    this.physics.world.setBounds(
+      0,
+      0,
+      this.levelManager.map.widthInPixels,
+      this.levelManager.map.heightInPixels
+    );
 
-    
-    // add collider physics rule between player and layer
-    this.physics.add.collider(this.player, this.levelManager.layer);
 
     // allow access to keyboard events
     if (this.input?.keyboard) {
@@ -66,22 +82,18 @@ export class Game extends Scene {
     this.camera.startFollow(this.player); // Set camera to follow the player
 
     // Set camera bounds to match the map size
-    this.camera.setBounds(0, 0, this.levelManager.map.widthInPixels, this.levelManager.map.heightInPixels);
+    this.camera.setBounds(
+      0,
+      0,
+      this.levelManager.map.widthInPixels,
+      this.levelManager.map.heightInPixels
+    );
 
     // Add some lerp (smoothing) to the camera movement
     this.camera.setLerp(0.1, 0.1);
 
     // Set camera dead zone - area where player can move without moving camera
     this.camera.setDeadzone(200, 256);
-
-    // create robot animation
-    this.physics.add.collider(
-      this.robot,
-      this.levelManager.layer,
-      this.handleRobotCollision,
-      undefined,
-      this
-    );
 
     let health = 4;
     const healthText = this.add.text(16, 16, 'Health: 0', {
@@ -101,35 +113,9 @@ export class Game extends Scene {
       this
     );
 
-    // Create bullets group
-    this.bullets = this.physics.add.group({
-      defaultKey: 'bullet', // sprite key for bullets
-      maxSize: 10, // maximum number of bullets allowed at once
-      allowGravity: false,
-    });
 
     // Add 'A' key binding
     this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-
-    // Add collision between bullets and layer/robot
-    this.physics.add.overlap(
-      this.robot,
-      this.bullets,
-      (robot: any, bullet: any) => {
-        bullet.destroy();
-
-        // TODO: Fix typescript once we know what type the robot will be
-        robot.setTint(0xff0000);
-        robot.setVelocity(0, 0);
-        robot.anims.stop();
-      },
-      undefined,
-      this
-    );
-
-    this.physics.add.collider(this.bullets, this.levelManager.layer, (bullet) => {
-      bullet.destroy();
-    });
 
     EventBus.emit('current-scene-ready', this);
   }
@@ -139,27 +125,9 @@ export class Game extends Scene {
     this.robot.update();
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
-      // Get a bullet from the pool
-      const bullet = this.bullets.get(
-        this.player.x,
-        this.player.y,
-        'bullet'
-      ) as Phaser.Physics.Arcade.Sprite;
-
-      if (bullet) {
-        bullet.setActive(true);
-        bullet.setVisible(true);
-
-        // Set bullet velocity based on player direction
-        const direction = this.player.flipX ? -1 : 1; // TODO: doesn't work
-        const speed = 400;
-        bullet.setVelocityX(speed * direction);
-
-        // Destroy bullet after some time
-        this.time.delayedCall(1500, () => {
-          bullet.destroy();
-        });
-      }
+      // Set bullet velocity based on player direction
+      const direction = this.player.flipX ? -1 : 1; // TODO: doesn't work
+      this.bulletManager.shoot(this.player.x, this.player.y, direction);
     }
   }
 
