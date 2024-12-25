@@ -9,10 +9,6 @@ export class LevelManager {
     this.scene = scene;
   }
 
-  preloadAssets(): void {
-    this.scene.load.tilemapCSV('map', '../assets/levels/level_1.csv');
-  }
-
   createLevel(): void {
     this.map = this.scene.make.tilemap({
       key: 'map',
@@ -40,5 +36,12 @@ export class LevelManager {
     //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
     //   faceColor: new Phaser.Display.Color(40, 39, 37, 255), // Color of colliding face edges
     // });
+  }
+
+  static preloadAssets(scene: Phaser.Scene): void {
+    scene.load.setPath('assets/images');
+    scene.load.image('tileset', 'tileset.png');
+    scene.load.setPath('assets/levels');
+    scene.load.tilemapCSV('level_1_tilemap', 'level_1.csv');
   }
 }

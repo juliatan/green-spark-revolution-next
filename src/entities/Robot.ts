@@ -39,4 +39,12 @@ export class Robot extends Phaser.Physics.Arcade.Sprite {
       }
     }
   }
+
+  static preloadAssets(scene: Phaser.Scene): void {
+    scene.load.setPath('assets/images');
+    scene.load.spritesheet('robot_spritesheet', 'robot_spritesheet.png', {
+      frameWidth: 48,
+      frameHeight: 80,
+    });
+  }
 }

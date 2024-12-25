@@ -8,7 +8,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private init(): void {
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
-    this.setBounce(0.2);
+    this.setBounce(0.0);
     this.setCollideWorldBounds(true);
   }
 
@@ -16,7 +16,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.anims.create({
       key: 'playerIsStill',
       frames: [{ key: 'player', frame: 8 }],
-      frameRate: 20,
     });
 
     this.scene.anims.create({
@@ -25,7 +24,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         start: 0,
         end: 7,
       }),
-      frameRate: 10,
+      frameRate: 10,  // Should depend on velocity and framesize - if jittery, add more frames
       repeat: -1,
     });
 
@@ -35,7 +34,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         start: 8,
         end: 15,
       }),
-      frameRate: 10,
+      frameRate: 10,  // Should depend on velocity and framesize - if jittery, add more frames
       repeat: -1,
     });
   }
@@ -55,5 +54,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (cursors.up.isDown && this.body?.blocked.down) {
       this.setVelocityY(-130);
     }
+  }
+
+  static preloadAssets(scene: Phaser.Scene): void {
+    scene.load.setPath('assets/images');
+    scene.load.spritesheet('player_spritesheet', 'player_spritesheet.png', {
+      frameWidth: 48,
+      frameHeight: 48,
+    });
   }
 }
