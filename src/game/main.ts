@@ -1,5 +1,5 @@
 import { Boot } from '@/scenes/Boot';
-import { Game as MainGame } from '@/scenes/Game';
+import { MainGame } from '@/scenes/MainGame';
 import { GameOver } from '@/scenes/GameOver';
 import { Preloader } from '@/scenes/Preloader';
 import { AUTO, Game } from 'phaser';
@@ -8,10 +8,9 @@ import { AUTO, Game } from 'phaser';
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
-  width: 1024, // 64 blocks x 16 pixels
-  height: 256, // 16 blocks x 16 pixels
+  width: 768, // 48 blocks x 16 pixels
+  height: 480, // 30 blocks x 16 pixels
   parent: 'game-container',
-  backgroundColor: '0xffffff',
   scene: [Boot, Preloader, MainGame, GameOver],
   physics: {
     default: 'arcade',
