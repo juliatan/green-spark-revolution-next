@@ -1,8 +1,18 @@
+import { InputManager } from "@/managers/InputManager";
+
+enum PlayerDirection {
+  Left,
+  Right
+}
+
 export class Player extends Phaser.Physics.Arcade.Sprite {
+  playerDirection: PlayerDirection = PlayerDirection.Right;
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'player');
+    super(scene, x, y, 'player_spritesheet');
     this.init();
     this.createAnimations();
+    this.scene = scene;
   }
 
   private init(): void {
@@ -14,13 +24,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private createAnimations(): void {
     this.scene.anims.create({
-      key: 'playerIsStill',
-      frames: [{ key: 'player', frame: 8 }],
+      key: 'playerIsStillFacingLeft',
+      frames: [{ key: 'player_spritesheet', frame: 7 }],
+    });
+
+    this.scene.anims.create({
+      key: 'playerIsStillFacingRight',
+      frames: [{ key: 'player_spritesheet', frame: 8 }],
     });
 
     this.scene.anims.create({
       key: 'playerMoveLeft',
-      frames: this.scene.anims.generateFrameNumbers('player', {
+      frames: this.scene.anims.generateFrameNumbers('player_spritesheet', {
         start: 0,
         end: 7,
       }),
@@ -30,7 +45,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.scene.anims.create({
       key: 'playerMoveRight',
-      frames: this.scene.anims.generateFrameNumbers('player', {
+      frames: this.scene.anims.generateFrameNumbers('player_spritesheet', {
         start: 8,
         end: 15,
       }),
@@ -39,20 +54,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
-    if (cursors.left.isDown) {
-      this.setVelocityX(-160);
+  update(inputManager: InputManager): void {
+    const isGrounded = this.body?.blocked.down;
+
+    if (inputManager.isKeyPressed('ArrowLeft')) {
       this.anims.play('playerMoveLeft', true);
-    } else if (cursors.right.isDown) {
-      this.setVelocityX(160);
+      this.playerDirection = PlayerDirection.Left;
+      if (isGrounded) this.setVelocityX(-160);
+    } else if (inputManager.isKeyPressed('ArrowRight')) {
       this.anims.play('playerMoveRight', true);
+      this.playerDirection = PlayerDirection.Right;
+      if (isGrounded) this.setVelocityX(160);
     } else {
-      this.setVelocityX(0);
-      this.anims.play('playerIsStill');
+      if (this.playerDirection === PlayerDirection.Left) {
+        this.anims.play('playerIsStillFacingLeft');
+      } else {
+        this.anims.play('playerIsStillFacingRight');
+      }
+      if (isGrounded) this.setVelocityX(0);
     }
 
-    if (cursors.up.isDown && this.body?.blocked.down) {
-      this.setVelocityY(-130);
+    if (inputManager.isKeyPressed('ArrowUp')) {
+      if (isGrounded) this.setVelocityY(-500);
     }
   }
 

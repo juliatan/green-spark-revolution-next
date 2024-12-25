@@ -1,6 +1,6 @@
 export class Robot extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'robot');
+    super(scene, x, y, 'robot_spritesheet');
     this.init();
     this.createAnimations();
     this.anims.play('robotMoveLeft', true);
@@ -17,14 +17,14 @@ export class Robot extends Phaser.Physics.Arcade.Sprite {
   private createAnimations(): void {
     this.anims.create({
       key: 'robotMoveLeft',
-      frames: this.anims.generateFrameNumbers('robot', { start: 0, end: 7 }),
+      frames: this.anims.generateFrameNumbers('robot_spritesheet', { start: 0, end: 7 }),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: 'robotMoveRight',
-      frames: this.anims.generateFrameNumbers('robot', { start: 8, end: 15 }),
+      frames: this.anims.generateFrameNumbers('robot_spritesheet', { start: 8, end: 15 }),
       frameRate: 10,
       repeat: -1,
     });

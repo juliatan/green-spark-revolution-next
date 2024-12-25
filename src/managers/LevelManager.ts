@@ -11,12 +11,12 @@ export class LevelManager {
 
   createLevel(): void {
     this.map = this.scene.make.tilemap({
-      key: 'map',
-      tileWidth: 8,
-      tileHeight: 8,
+      key: 'level_1_tilemap',
+      tileWidth: 16,
+      tileHeight: 16,
     });
 
-    const tileset = this.map.addTilesetImage('tiles');
+    const tileset = this.map.addTilesetImage('tileset', undefined, 16, 16, 1, 2);
     if (!tileset) {
       throw new Error('Failed to load tileset image');
     }
@@ -27,10 +27,10 @@ export class LevelManager {
     }
 
     this.layer = createdLayer;
-    this.layer.setCollisionBetween(1, 6); // set collision for all tiles in range
+    this.layer.setCollisionBetween(1, 255); // set collision for all tiles in range
 
-    // For debugging collision tiles
-    // const debugGraphics = this.add.graphics().setAlpha(0.75);
+    // // For debugging collision tiles
+    // const debugGraphics = this.scene.add.graphics().setAlpha(0.75);
     // this.layer.renderDebug(debugGraphics, {
     //   tileColor: null, // Color of non-colliding tiles
     //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
@@ -39,9 +39,7 @@ export class LevelManager {
   }
 
   static preloadAssets(scene: Phaser.Scene): void {
-    scene.load.setPath('assets/images');
-    scene.load.image('tileset', 'tileset.png');
-    scene.load.setPath('assets/levels');
-    scene.load.tilemapCSV('level_1_tilemap', 'level_1.csv');
+    scene.load.image('tileset', 'assets/images/tileset.png');
+    scene.load.tilemapCSV('level_1_tilemap', 'assets/levels/level_1.csv');
   }
 }
