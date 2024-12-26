@@ -25,22 +25,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Create particle emitter
     this.particleEmitter = scene.add.particles(0, 0, 'water_particle', {
-      // x: {
-      //   onEmit: (particle, key, t, value) => {
-      //     return this.x;
-      //   },
-      //   onUpdate: (particle, key, t, value) => {
-      //     return value;
-      //   }
-      // },
-      // y: {
-      //   onEmit: (particle, key, t, value) => {
-      //     return this.y;
-      //   },
-      //   onUpdate: (particle, key, t, value) => {
-      //     return value;
-      //   }
-      // },
+      x: (particle, key, t, value) => this.playerDirection === PlayerDirection.Left ? this.x-24 : this.x+24,
+      y: (particle, key, t, value) => this.y,
       lifespan: 500,
       speedX: { min: 200, max: 300 },
       speedY: { min: -30, max: 10 },
@@ -49,12 +35,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       scale: { start: 0.5, end: 1 },
       alpha: { start: 1, end: 0 },
     })
+    this.particleEmitter.stop();
   }
 
   configure(): void {
     this.setBounce(0.0);
     this.setCollideWorldBounds(true);
   }
+
+  // protected preUpdate(time: number, delta: number): void {
+  //   super.preUpdate(time, delta);
+  //   if (this.playerDirection === PlayerDirection.Left) {
+  //     this.particleEmitter.setPosition(this.x-24, this.y);
+  //     this.particleEmitter.
+  //   } else {
+  //     this.particleEmitter.setPosition(this.x+24, this.y);
+  //     this.particleEmitter.speedX = { min: 200, max: 300 };
+  //   }
+  // }
 
   update(): void {
     this.navigate();
