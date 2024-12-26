@@ -6,10 +6,10 @@ import { UIManager } from '@/managers/UIManager';
 import { Scene } from 'phaser';
 
 export class MainGame extends Scene {
-  camera: Phaser.Cameras.Scene2D.Camera;
+  levelManager: LevelManager;
   player: Player;
   robots: Phaser.Physics.Arcade.Group;
-  levelManager: LevelManager;
+  camera: Phaser.Cameras.Scene2D.Camera;
   uiManager: UIManager;
 
   constructor() {
@@ -23,8 +23,8 @@ export class MainGame extends Scene {
   create() {
     this.setupLevel();
     this.setupEntities();
-    this.setupCamera();
     this.setupCollisions();
+    this.setupCamera();
 
     // Set the world bounds to match map size
     this.physics.world.setBounds(
@@ -39,7 +39,6 @@ export class MainGame extends Scene {
 
   update() {
     this.player.update();
-    this.robots.runChildUpdate
   }
 
   changeScene() {
@@ -56,15 +55,18 @@ export class MainGame extends Scene {
   }
 
   private setupEntities() {
-    this.player = new Player(this, 380, 200);
-    this.robots = this.physics.add.group({
-      classType: Robot,
-      createCallback: (go) => go.configure(),
-    });
-    const robot_1 = new Robot(this, 450, 200);
-    this.robots.add(robot_1);
-    const robot_2 = new Robot(this, 550, 200);
-    this.robots.add(robot_2);
+    // Setup Player
+    Player.createAnimations(this);
+    this.player = new Player(this, 380, 200);  // TODO: location from Tiled
+    this.player.configure();
+    // Setup Robot
+    Robot.createAnimations(this);
+  }
+
+  private setupCollisions(): void {
+    this.physics.add.collider(this.player, this.levelManager.layer);
+    // this.physics.add.collider(this.robot, this.levelManager.layer);
+    // this.physics.add.collider(this.robot, this.player);
   }
 
   private setupCamera(): void {
@@ -84,12 +86,5 @@ export class MainGame extends Scene {
 
     // Set camera dead zone - area where player can move without moving camera
     this.camera.setDeadzone(100);
-  }
-
-  private setupCollisions(): void {
-    this.physics.add.collider(this.player, this.levelManager.layer);
-    this.physics.add.collider(this.robots, this.levelManager.layer);
-    this.physics.add.collider(this.robots, this.player);
-    this.physics.add.collider(this.robots, this.robots);
   }
 }
