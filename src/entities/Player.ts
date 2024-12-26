@@ -7,12 +7,13 @@ enum PlayerDirection {
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   playerDirection: PlayerDirection = PlayerDirection.Right;
+  inputManager: InputManager;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player_spritesheet');
     this.init();
     this.createAnimations();
-    this.scene = scene;
+    this.inputManager = new InputManager(scene);
   }
 
   private init(): void {
@@ -54,14 +55,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  update(inputManager: InputManager): void {
+  update(): void {
     const isGrounded = this.body?.blocked.down;
 
-    if (inputManager.isKeyPressed('ArrowLeft')) {
+    if (this.inputManager.isKeyPressed('ArrowLeft')) {
       this.anims.play('playerMoveLeft', true);
       this.playerDirection = PlayerDirection.Left;
       if (isGrounded) this.setVelocityX(-160);
-    } else if (inputManager.isKeyPressed('ArrowRight')) {
+    } else if (this.inputManager.isKeyPressed('ArrowRight')) {
       this.anims.play('playerMoveRight', true);
       this.playerDirection = PlayerDirection.Right;
       if (isGrounded) this.setVelocityX(160);
@@ -74,7 +75,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (isGrounded) this.setVelocityX(0);
     }
 
-    if (inputManager.isKeyPressed('ArrowUp')) {
+    if (this.inputManager.isKeyPressed('ArrowUp')) {
       if (isGrounded) this.setVelocityY(-500);
     }
   }

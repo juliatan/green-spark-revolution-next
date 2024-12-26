@@ -1,8 +1,6 @@
 import { Player } from '@/entities/Player';
 import { Robot } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
-import { CollisionManager } from '@/managers/CollisionManager';
-import { InputManager } from '@/managers/InputManager';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
 import { Scene } from 'phaser';
@@ -10,11 +8,9 @@ import { Scene } from 'phaser';
 export class MainGame extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   player: Player;
-  robot: Robot;
+  robots: Phaser.Physics.Arcade.Group;
   levelManager: LevelManager;
   uiManager: UIManager;
-  collisionManager: CollisionManager;
-  inputManager: InputManager
 
   constructor() {
     super('MainGame');
@@ -28,7 +24,7 @@ export class MainGame extends Scene {
     this.setupLevel();
     this.setupEntities();
     this.setupCamera();
-    this.setupCollisionsAndOverlaps();
+    this.setupCollisions();
 
     // Set the world bounds to match map size
     this.physics.world.setBounds(
@@ -42,8 +38,8 @@ export class MainGame extends Scene {
   }
 
   update() {
-    this.player.update(this.inputManager);
-    this.robot.update();
+    this.player.update();
+    this.robots.runChildUpdate
   }
 
   changeScene() {
@@ -53,8 +49,6 @@ export class MainGame extends Scene {
   private initialiseManagers(): void {
     this.levelManager = new LevelManager(this);
     this.uiManager = new UIManager(this);
-    this.collisionManager = new CollisionManager(this);
-    this.inputManager = new InputManager(this);
   }
 
   private setupLevel(): void {
@@ -63,7 +57,14 @@ export class MainGame extends Scene {
 
   private setupEntities() {
     this.player = new Player(this, 380, 200);
-    this.robot = new Robot(this, 450, 200);
+    this.robots = this.physics.add.group({
+      classType: Robot,
+      createCallback: (go) => go.configure(),
+    });
+    const robot_1 = new Robot(this, 450, 200);
+    this.robots.add(robot_1);
+    const robot_2 = new Robot(this, 550, 200);
+    this.robots.add(robot_2);
   }
 
   private setupCamera(): void {
@@ -85,17 +86,10 @@ export class MainGame extends Scene {
     this.camera.setDeadzone(100);
   }
 
-  private setupCollisionsAndOverlaps(): void {
-    this.collisionManager.setupCollisions(
-      this.player,
-      this.robot,
-      this.levelManager.layer,
-    );
-
-    this.collisionManager.setupOverlaps(
-      this.player,
-      this.robot,
-      this.uiManager
-    );
+  private setupCollisions(): void {
+    this.physics.add.collider(this.player, this.levelManager.layer);
+    this.physics.add.collider(this.robots, this.levelManager.layer);
+    this.physics.add.collider(this.robots, this.player);
+    this.physics.add.collider(this.robots, this.robots);
   }
 }

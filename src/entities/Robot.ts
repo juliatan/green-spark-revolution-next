@@ -1,17 +1,17 @@
 export class Robot extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'robot_spritesheet');
-    this.init();
     this.createAnimations();
-    this.anims.play('robotMoveLeft', true);
   }
 
-  private init(): void {
+  public configure(): Robot {
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
-    this.setBounce(0.2);
+    this.setBounce(0.0);
+    this.setImmovable(true);
     this.setCollideWorldBounds(true);
     this.setVelocityX(-60); // automatically start walking
+    return this;
   }
 
   private createAnimations(): void {
