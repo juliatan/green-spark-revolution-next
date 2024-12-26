@@ -71,7 +71,7 @@ export class MainGame extends Scene {
     this.robots.add(new SentryRobot(this, 200, 200, RobotDirection.Left));  // TODO: location from Tiled
     this.robots.add(new SentryRobot(this, 700, 400, RobotDirection.Right));  // TODO: location from Tiled
     // Patrol Robots
-    this.robots.add(new PatrolRobot(this, 1000, 400, RobotDirection.Left, 800, 1200));  // TODO: location from Tiled
+    this.robots.add(new PatrolRobot(this, 1000, 400, RobotDirection.Left, 800, 1200));  // TODO: location and range from Tiled
   }
 
   private setupCollisions(): void {

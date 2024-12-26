@@ -20,7 +20,7 @@ export class InputManager {
     this.keyGroups = [
       { name: "directionX", keys: ["ArrowLeft", "ArrowRight"] },
       { name: "directionY", keys: ["ArrowUp", "ArrowDown"] },
-      { name: "action", keys: ["A", "Q"] },
+      { name: "action", keys: ["a", "q"] },
     ];
 
     this.keyStates = {};
