@@ -13,7 +13,7 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.robotDirection = direction;
-    this.explosion = scene.add.particles(0, 0, 'water_droplet', {
+    this.explosion = scene.add.particles(0, 0, 'explosion_particle', {
       x: (particle, key, t, value) => this.x,
       y: (particle, key, t, value) => this.y,
       quantity: 1,
