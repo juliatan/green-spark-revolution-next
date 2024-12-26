@@ -9,7 +9,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   playerDirection: PlayerDirection;
   inputManager: InputManager;
   lastAttackTime: number; // Track the last attack time
-  attackCooldown: number = 500; // Cooldown period in milliseconds
+  attackCooldown: number = 400; // Cooldown period in milliseconds
   water: Phaser.Physics.Arcade.Group;
 
   constructor(
@@ -18,7 +18,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     y: number,
     water: Phaser.Physics.Arcade.Group,
     direction: PlayerDirection = PlayerDirection.Right,
-    ) {
+  ) {
     super(scene, x, y, 'player_spritesheet');
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -31,6 +31,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   configure(): void {
     this.setBounce(0.0);
     this.setCollideWorldBounds(true);
+    this.setGravityY(600);
   }
 
   update(): void {
@@ -68,9 +69,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.inputManager.isKeyPressed('a') && currentTime - this.lastAttackTime > this.attackCooldown) {
       this.lastAttackTime = currentTime;
       console.log('Player attacks!');
-      // create one water droplet at the player's position, players velocity is added to the droplet
-      const waterDroplet = this.water.create(this.playerDirection === PlayerDirection.Left? this.x-24 : this.x + 24, this.y, 'water_droplet');
-      waterDroplet.setVelocityX((this.body?.velocity.x || 0) + (this.playerDirection === PlayerDirection.Left ? -200 : 200));
+      // Create 200 water droplets over 300 ms
+      const createWaterDroplet = () => {
+        const waterDroplet = this.water.create(
+          this.playerDirection === PlayerDirection.Left ? this.x - 24 : this.x + 24,
+          this.y,
+          'water_droplet'
+        );
+        waterDroplet.setLifespan(200);  // Set lifespan
+        const velocityX = Phaser.Math.Between(300, 500) * (this.playerDirection === PlayerDirection.Left ? -1 : 1);
+        const velocityY = Phaser.Math.Between(-30, 10);
+        waterDroplet.setVelocityX(velocityX);
+        waterDroplet.setVelocityY(velocityY);
+      };
+      for (let i = 0; i < 200; i++) {
+        this.scene.time.delayedCall(i * 300/200, createWaterDroplet);
+      }
     }
   }
 

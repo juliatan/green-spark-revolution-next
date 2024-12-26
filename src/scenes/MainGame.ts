@@ -42,6 +42,7 @@ export class MainGame extends Scene {
   update() {
     this.player.update();
     this.robots.getChildren().forEach((robot) => (robot as Robot).update());
+    this.water.getChildren().forEach((waterDroplet) => (waterDroplet as WaterDroplet).update());
   }
 
   changeScene() {
@@ -67,7 +68,7 @@ export class MainGame extends Scene {
     });
     // Setup Player
     Player.createAnimations(this);
-    this.player = new Player(this, 450, 200, this.water);  // TODO: location from Tiled
+    this.player = new Player(this, 400, 0, this.water);  // TODO: location from Tiled
     this.player.configure();
     // Setup Robots Group, to make it easier to manage multiple robots
     Robot.createAnimations(this);
@@ -78,7 +79,8 @@ export class MainGame extends Scene {
       }
     });
     // Sentry Robots
-    this.robots.add(new SentryRobot(this, 200, 200, RobotDirection.Left));  // TODO: location from Tiled
+    this.robots.add(new SentryRobot(this, 200, 400, RobotDirection.Right));  // TODO: location from Tiled
+    this.robots.add(new SentryRobot(this, 250, 0, RobotDirection.Right));  // TODO: location from Tiled
     this.robots.add(new SentryRobot(this, 700, 400, RobotDirection.Right));  // TODO: location from Tiled
     // Patrol Robots
     this.robots.add(new PatrolRobot(this, 1000, 400, RobotDirection.Left, 800, 1200));  // TODO: location and range from Tiled
@@ -93,7 +95,7 @@ export class MainGame extends Scene {
     this.physics.add.collider(this.water, this.player, (waterDroplet, player) => { (waterDroplet as WaterDroplet).destroy() });
     this.physics.add.collider(this.water, this.robots, (waterDroplet, robot) => {
       (waterDroplet as WaterDroplet).destroy();
-      (robot as Robot).takeDamage(100);
+      (robot as Robot).takeDamage(1);
     });
   }
 
