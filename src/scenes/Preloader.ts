@@ -1,5 +1,6 @@
 import { Player } from '@/entities/Player';
 import { Robot } from '@/entities/Robot';
+import { WaterDroplet } from '@/entities/WaterDroplet';
 import { LevelManager } from '@/managers/LevelManager';
 import { Scene } from 'phaser';
 
@@ -32,6 +33,7 @@ export class Preloader extends Scene {
 
   preload() {
     LevelManager.preloadAssets(this);
+    WaterDroplet.preloadAssets(this);
     Player.preloadAssets(this);
     Robot.preloadAssets(this);
   }

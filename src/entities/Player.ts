@@ -1,5 +1,4 @@
 import { InputManager } from "@/managers/InputManager";
-import { Jersey_25 } from "next/font/google";
 
 enum PlayerDirection {
   Left,
@@ -11,31 +10,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   inputManager: InputManager;
   lastAttackTime: number; // Track the last attack time
   attackCooldown: number = 500; // Cooldown period in milliseconds
-  particleEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
-  graphics: Phaser.GameObjects.Graphics;
+  water: Phaser.Physics.Arcade.Group;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, direction: PlayerDirection = PlayerDirection.Right) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    water: Phaser.Physics.Arcade.Group,
+    direction: PlayerDirection = PlayerDirection.Right,
+    ) {
     super(scene, x, y, 'player_spritesheet');
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.inputManager = new InputManager(scene);
     this.playerDirection = direction;
     this.lastAttackTime = 0;
-    this.graphics = scene.add.graphics();
-
-    // Create particle emitter
-    this.particleEmitter = scene.add.particles(0, 0, 'water_particle', {
-      x: (particle, key, t, value) => this.playerDirection === PlayerDirection.Left ? this.x-24 : this.x+24,
-      y: (particle, key, t, value) => this.y,
-      lifespan: 500,
-      speedX: { min: 200, max: 300 },
-      speedY: { min: -30, max: 10 },
-      gravityY: 100,
-      quantity: 25,
-      scale: { start: 0.5, end: 1 },
-      alpha: { start: 1, end: 0 },
-    })
-    this.particleEmitter.stop();
+    this.water = water;
   }
 
   configure(): void {
@@ -43,21 +33,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
   }
 
-  // protected preUpdate(time: number, delta: number): void {
-  //   super.preUpdate(time, delta);
-  //   if (this.playerDirection === PlayerDirection.Left) {
-  //     this.particleEmitter.setPosition(this.x-24, this.y);
-  //     this.particleEmitter.
-  //   } else {
-  //     this.particleEmitter.setPosition(this.x+24, this.y);
-  //     this.particleEmitter.speedX = { min: 200, max: 300 };
-  //   }
-  // }
-
   update(): void {
     this.navigate();
     this.attack();
-    this.draw_emitter();  // for debugging
   }
 
   navigate(): void {
@@ -90,23 +68,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.inputManager.isKeyPressed('a') && currentTime - this.lastAttackTime > this.attackCooldown) {
       this.lastAttackTime = currentTime;
       console.log('Player attacks!');
-      // Start emitting particles
-      this.particleEmitter.start();
-      // Stop emitting after 100ms
-      this.scene.time.delayedCall(400, () => {
-        this.particleEmitter.stop();
-      });
+      // create one water droplet at the player's position, players velocity is added to the droplet
+      const waterDroplet = this.water.create(this.playerDirection === PlayerDirection.Left? this.x-24 : this.x + 24, this.y, 'water_droplet');
+      waterDroplet.setVelocityX((this.body?.velocity.x || 0) + (this.playerDirection === PlayerDirection.Left ? -200 : 200));
     }
-  }
-
-  draw_emitter(): void {
-    this.graphics.clear();
-    this.graphics.lineStyle(1, 0x00ff00);
-
-    //  The current emitter bounds
-    const vb = this.particleEmitter.getBounds();
-    this.graphics.strokeRectShape(vb);
-    this.graphics.lineStyle(1, 0xff0000);
   }
 
   static preloadAssets(scene: Phaser.Scene): void {
@@ -115,7 +80,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       frameWidth: 48,
       frameHeight: 48,
     });
-    scene.load.image('water_particle', 'water_particle.png');
   }
 
   static createAnimations(scene: Phaser.Scene): void {

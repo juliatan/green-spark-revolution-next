@@ -5,12 +5,25 @@ export enum RobotDirection {
 
 export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
   robotDirection: RobotDirection;
+  health: number = 100;
+  explosion: Phaser.GameObjects.Particles.ParticleEmitter;
 
   constructor(scene: Phaser.Scene, x: number, y: number, direction: RobotDirection = RobotDirection.Right) {
     super(scene, x, y, 'robot_spritesheet');
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.robotDirection = direction;
+    this.explosion = scene.add.particles(0, 0, 'water_droplet', {
+      x: (particle, key, t, value) => this.x,
+      y: (particle, key, t, value) => this.y,
+      quantity: 1,
+      speed: { min: -50, max: 50 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0, end: 5 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 1000,
+    });
+    this.explosion.stop();
   }
 
   configure(): void {
@@ -37,9 +50,26 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
 
   static preloadAssets(scene: Phaser.Scene): void {
     scene.load.setPath('assets/images');
+    scene.load.image('explosion_particle', 'explosion_particle.png');
     scene.load.spritesheet('robot_spritesheet', 'robot_spritesheet.png', {
       frameWidth: 48,
       frameHeight: 80,
+    });
+  }
+
+  takeDamage(damage: number): void {
+    this.health -= damage;
+    if (this.health <= 0) {
+      this.destroy();
+    }
+  }
+
+  destroy(): void {
+    this.explosion.start();
+    // Destroy the particle emitter after the explosion
+    this.scene.time.delayedCall(250, () => {
+      this.explosion.stop();
+      super.destroy();
     });
   }
 

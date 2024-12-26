@@ -1,5 +1,6 @@
+import { WaterDroplet } from '@/entities/WaterDroplet';
 import { Player } from '@/entities/Player';
-import { Robot, SentryRobot, PatrolRobot, RobotDirection} from '@/entities/Robot';
+import { Robot, SentryRobot, PatrolRobot, RobotDirection } from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
@@ -9,6 +10,7 @@ export class MainGame extends Scene {
   levelManager: LevelManager;
   player: Player;
   robots: Phaser.Physics.Arcade.Group;
+  water: Phaser.Physics.Arcade.Group;
   camera: Phaser.Cameras.Scene2D.Camera;
   uiManager: UIManager;
 
@@ -56,16 +58,24 @@ export class MainGame extends Scene {
   }
 
   private setupEntities() {
+    // Setup WaterDroplets Group, to make it easier to manage multiple droplets
+    this.water = this.physics.add.group({
+      classType: WaterDroplet,
+      createCallback: (go) => {
+        (go as WaterDroplet).configure();
+      }
+    });
     // Setup Player
     Player.createAnimations(this);
-    this.player = new Player(this, 450, 200);  // TODO: location from Tiled
+    this.player = new Player(this, 450, 200, this.water);  // TODO: location from Tiled
     this.player.configure();
     // Setup Robots Group, to make it easier to manage multiple robots
     Robot.createAnimations(this);
     this.robots = this.physics.add.group({
       classType: Robot,
       createCallback: (go) => {
-        (go as Robot).configure();}
+        (go as Robot).configure();
+      }
     });
     // Sentry Robots
     this.robots.add(new SentryRobot(this, 200, 200, RobotDirection.Left));  // TODO: location from Tiled
@@ -79,6 +89,12 @@ export class MainGame extends Scene {
     this.physics.add.collider(this.robots, this.levelManager.layer);
     this.physics.add.collider(this.robots, this.player);
     this.physics.add.collider(this.robots, this.robots);
+    this.physics.add.collider(this.water, this.levelManager.layer, (waterDroplet, layer) => { (waterDroplet as WaterDroplet).destroy() });
+    this.physics.add.collider(this.water, this.player, (waterDroplet, player) => { (waterDroplet as WaterDroplet).destroy() });
+    this.physics.add.collider(this.water, this.robots, (waterDroplet, robot) => {
+      (waterDroplet as WaterDroplet).destroy();
+      (robot as Robot).takeDamage(100);
+    });
   }
 
   private setupCamera(): void {
