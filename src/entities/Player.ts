@@ -6,14 +6,15 @@ enum PlayerDirection {
 }
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  playerDirection: PlayerDirection = PlayerDirection.Right;
+  playerDirection: PlayerDirection;
   inputManager: InputManager;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, direction: PlayerDirection = PlayerDirection.Right) {
     super(scene, x, y, 'player_spritesheet');
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.inputManager = new InputManager(scene);
+    this.playerDirection = direction;
   }
 
   configure(): void {

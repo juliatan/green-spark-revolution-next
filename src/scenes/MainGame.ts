@@ -1,5 +1,5 @@
 import { Player } from '@/entities/Player';
-import { Robot } from '@/entities/Robot';
+import { Robot, SentryRobot, PatrolRobot, RobotDirection} from '@/entities/Robot';
 import { EventBus } from '@/game/EventBus';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
@@ -39,6 +39,7 @@ export class MainGame extends Scene {
 
   update() {
     this.player.update();
+    this.robots.getChildren().forEach((robot) => (robot as Robot).update());
   }
 
   changeScene() {
@@ -57,16 +58,27 @@ export class MainGame extends Scene {
   private setupEntities() {
     // Setup Player
     Player.createAnimations(this);
-    this.player = new Player(this, 380, 200);  // TODO: location from Tiled
+    this.player = new Player(this, 450, 200);  // TODO: location from Tiled
     this.player.configure();
-    // Setup Robot
+    // Setup Robots Group, to make it easier to manage multiple robots
     Robot.createAnimations(this);
+    this.robots = this.physics.add.group({
+      classType: Robot,
+      createCallback: (go) => {
+        (go as Robot).configure();}
+    });
+    // Sentry Robots
+    this.robots.add(new SentryRobot(this, 200, 200, RobotDirection.Left));  // TODO: location from Tiled
+    this.robots.add(new SentryRobot(this, 700, 400, RobotDirection.Right));  // TODO: location from Tiled
+    // Patrol Robots
+    this.robots.add(new PatrolRobot(this, 1000, 400, RobotDirection.Left, 800, 1200));  // TODO: location from Tiled
   }
 
   private setupCollisions(): void {
     this.physics.add.collider(this.player, this.levelManager.layer);
-    // this.physics.add.collider(this.robot, this.levelManager.layer);
-    // this.physics.add.collider(this.robot, this.player);
+    this.physics.add.collider(this.robots, this.levelManager.layer);
+    this.physics.add.collider(this.robots, this.player);
+    this.physics.add.collider(this.robots, this.robots);
   }
 
   private setupCamera(): void {
