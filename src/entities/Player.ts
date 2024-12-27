@@ -1,4 +1,6 @@
 import { InputManager } from "@/managers/InputManager";
+import { EyeManager } from "@/managers/EyeManager";
+import { RainSeeder } from "@/entities/RainSeeder";
 
 enum PlayerDirection {
   Left,
@@ -9,8 +11,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   playerDirection: PlayerDirection;
   inputManager: InputManager;
   lastAttackTime: number; // Track the last attack time
+  lastActTime: number; // Track the last act time
   attackCooldown: number = 400; // Cooldown period in milliseconds
+  actCoolDown: number = 400; // Cooldown period in milliseconds
   water: Phaser.Physics.Arcade.Group;
+  eye: EyeManager;
 
   constructor(
     scene: Phaser.Scene,
@@ -23,8 +28,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.inputManager = new InputManager(scene);
+    this.eye = new EyeManager(scene);
     this.playerDirection = direction;
     this.lastAttackTime = 0;
+    this.lastActTime = 0;
     this.water = water;
   }
 
@@ -38,6 +45,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update(): void {
     this.navigate();
     this.attack();
+    this.act()
   }
 
   navigate(): void {
@@ -83,7 +91,40 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         waterDroplet.setVelocityY(velocityY);
       };
       for (let i = 0; i < 200; i++) {  // Uniformly distribute droplets over 300ms
-        this.scene.time.delayedCall(i * 300/200, createWaterDroplet);
+        this.scene.time.delayedCall(i * 300 / 200, createWaterDroplet);
+      }
+    }
+  }
+
+  act(): void {
+    const currentTime = this.scene.time.now;
+
+    // Check if the cooldown period has elapsed
+    if (this.inputManager.isKeyPressed('q') && currentTime - this.lastActTime > this.actCoolDown) {
+      this.lastActTime = currentTime;
+
+      // Determine the eye position and line of sight angles based on player direction
+      const eyeX = this.x + (this.playerDirection === PlayerDirection.Right ? 24 : -24);
+      const eyeY = this.y + 24; // Eye position relative to the player
+      const distance = 100; // Line of sight distance
+      const startAngle = this.playerDirection === PlayerDirection.Right ? Phaser.Math.DegToRad(-45) : Phaser.Math.DegToRad(135);
+      const endAngle = this.playerDirection === PlayerDirection.Right ? Phaser.Math.DegToRad(45) : Phaser.Math.DegToRad(225);
+
+      // Use the EyeManager to get objects in the line of sight
+      const objectsInSight = this.eye.getChildrenInLineOfSight(
+        eyeX,
+        eyeY,
+        startAngle,
+        endAngle,
+        distance
+      );
+
+      // If RainSeeder is in line of sight, call seed method
+      for (const object of objectsInSight) {
+        if (object instanceof RainSeeder) {
+          const rainSeeder = object as RainSeeder;
+          rainSeeder.seed();
+        }
       }
     }
   }
