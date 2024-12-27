@@ -13,7 +13,8 @@ export class WaterDroplet extends Phaser.Physics.Arcade.Sprite {
   }
 
   configure(): void {
-    this.setBounce(0.0);
+    this.setBounce(0.1);
+    this.setMass(0.1);
   }
 
   setLifespan(lifespan: number): void {

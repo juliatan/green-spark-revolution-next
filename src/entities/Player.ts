@@ -32,6 +32,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setBounce(0.0);
     this.setCollideWorldBounds(true);
     this.setGravityY(600);
+    this.setMass(1);
   }
 
   update(): void {
@@ -42,18 +43,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   navigate(): void {
     const isGrounded = this.body?.blocked.down;
     if (this.inputManager.isKeyPressed('ArrowLeft')) {
-      this.play('playerMoveLeft', true);
+      this.anims.play('playerMoveLeft', true);
       this.playerDirection = PlayerDirection.Left;
       if (isGrounded) this.setVelocityX(-160);
     } else if (this.inputManager.isKeyPressed('ArrowRight')) {
-      this.play('playerMoveRight', true);
+      this.anims.play('playerMoveRight', true);
       this.playerDirection = PlayerDirection.Right;
       if (isGrounded) this.setVelocityX(160);
     } else {
       if (this.playerDirection === PlayerDirection.Left) {
-        this.play('playerIsStillFacingLeft');
+        this.anims.play('playerIsStillFacingLeft');
       } else {
-        this.play('playerIsStillFacingRight');
+        this.anims.play('playerIsStillFacingRight');
       }
       if (isGrounded) this.setVelocityX(0);
     }
@@ -69,7 +70,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.inputManager.isKeyPressed('a') && currentTime - this.lastAttackTime > this.attackCooldown) {
       this.lastAttackTime = currentTime;
       console.log('Player attacks!');
-      // Create 200 water droplets over 300 ms
+      // Create water droplets
       const createWaterDroplet = () => {
         const waterDroplet = this.water.create(
           this.playerDirection === PlayerDirection.Left ? this.x - 24 : this.x + 24,
@@ -82,7 +83,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         waterDroplet.setVelocityX(velocityX);
         waterDroplet.setVelocityY(velocityY);
       };
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 200; i++) {  // Uniformly distribute droplets over 300ms
         this.scene.time.delayedCall(i * 300/200, createWaterDroplet);
       }
     }

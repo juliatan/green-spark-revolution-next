@@ -91,10 +91,8 @@ export class MainGame extends Scene {
     this.physics.add.collider(this.robots, this.levelManager.layer);
     this.physics.add.collider(this.robots, this.player);
     this.physics.add.collider(this.robots, this.robots);
-    this.physics.add.collider(this.water, this.levelManager.layer, (waterDroplet, layer) => { (waterDroplet as WaterDroplet).destroy() });
-    this.physics.add.collider(this.water, this.player, (waterDroplet, player) => { (waterDroplet as WaterDroplet).destroy() });
+    this.physics.add.collider(this.water, this.levelManager.layer);
     this.physics.add.collider(this.water, this.robots, (waterDroplet, robot) => {
-      (waterDroplet as WaterDroplet).destroy();
       (robot as Robot).takeDamage(1);
     });
   }
