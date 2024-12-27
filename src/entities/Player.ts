@@ -10,10 +10,11 @@ enum PlayerDirection {
 export class Player extends Phaser.Physics.Arcade.Sprite {
   playerDirection: PlayerDirection;
   inputManager: InputManager;
-  lastAttackTime: number; // Track the last attack time
-  lastActTime: number; // Track the last act time
+  lastAttackTime: number = 0; // Track the last attack time
+  lastActTime: number = 0; // Track the last act time
   attackCooldown: number = 400; // Cooldown period in milliseconds
   actCoolDown: number = 400; // Cooldown period in milliseconds
+  health: number = 100;
   water: Phaser.Physics.Arcade.Group;
   eye: EyeManager;
 
@@ -30,8 +31,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.inputManager = new InputManager(scene);
     this.eye = new EyeManager(scene);
     this.playerDirection = direction;
-    this.lastAttackTime = 0;
-    this.lastActTime = 0;
     this.water = water;
   }
 
@@ -98,15 +97,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   act(): void {
     const currentTime = this.scene.time.now;
+    const isGrounded = this.body?.blocked.down;
 
     // Check if the cooldown period has elapsed
-    if (this.inputManager.isKeyPressed('q') && currentTime - this.lastActTime > this.actCoolDown) {
+    if (this.inputManager.isKeyPressed('q') && isGrounded && currentTime - this.lastActTime > this.actCoolDown) {
       this.lastActTime = currentTime;
 
       // Determine the eye position and line of sight angles based on player direction
       const eyeX = this.x + (this.playerDirection === PlayerDirection.Right ? 24 : -24);
       const eyeY = this.y + 24; // Eye position relative to the player
-      const distance = 100; // Line of sight distance
+      const distance = 50; // Line of sight distance
       const startAngle = this.playerDirection === PlayerDirection.Right ? Phaser.Math.DegToRad(-45) : Phaser.Math.DegToRad(135);
       const endAngle = this.playerDirection === PlayerDirection.Right ? Phaser.Math.DegToRad(45) : Phaser.Math.DegToRad(225);
 
@@ -126,6 +126,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           rainSeeder.seed();
         }
       }
+    }
+  }
+
+  takeDamage(damage: number): void {
+    this.health -= damage;
+    if (this.health <= 0) {
+      this.destroy();
     }
   }
 

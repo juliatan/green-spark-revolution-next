@@ -45,10 +45,7 @@ export class MainGame extends Scene {
     this.player.update();
     this.robots.getChildren().forEach((robot) => (robot as Robot).update());
     this.water.getChildren().forEach((waterDroplet) => (waterDroplet as WaterDroplet).update());
-  }
-
-  changeScene() {
-    this.scene.start('GameOver');
+    this.uiManager.update(this.player.health);;
   }
 
   private initialiseManagers(): void {

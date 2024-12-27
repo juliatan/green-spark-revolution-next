@@ -26,7 +26,7 @@ export class RainSeeder extends Phaser.Physics.Arcade.Sprite {
     // start rain
     const createWaterDroplet = () => {
       const waterDroplet = this.water.create(
-        Phaser.Math.Between(this.x - 500, this.x + 500),
+        Phaser.Math.Between(this.x - 350, this.x + 350),
         0,
         'water_droplet'
       );

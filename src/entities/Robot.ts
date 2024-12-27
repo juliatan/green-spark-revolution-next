@@ -1,3 +1,6 @@
+import { EyeManager } from "@/managers/EyeManager";
+import { Player } from "./Player";
+
 export enum RobotDirection {
   Left,
   Right
@@ -7,11 +10,19 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
   robotDirection: RobotDirection;
   health: number = 100;
   explosion: Phaser.GameObjects.Particles.ParticleEmitter;
+  mindBeam: Phaser.GameObjects.Particles.ParticleEmitter;
+  eye: EyeManager;
+  lastAttackTime: number = 0; // Track the last attack time
+  lastWatchTime: number = 0; // Track the last act time
+  attackCooldown: number = 100; // Cooldown period in milliseconds
+  watchCoolDown: number = 250; // Cooldown period in milliseconds
+  playerInLineOfSight: Player | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, direction: RobotDirection = RobotDirection.Right) {
     super(scene, x, y, 'robot_spritesheet');
     scene.add.existing(this);
     scene.physics.add.existing(this);
+    this.eye = new EyeManager(scene);
     this.robotDirection = direction;
     this.explosion = scene.add.particles(0, 0, 'explosion_particle', {
       x: (particle, key, t, value) => this.x,
@@ -24,6 +35,19 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
       lifespan: 1000,
     });
     this.explosion.stop();
+    this.mindBeam = scene.add.particles(0, 0, 'mindbeam_wave', {
+      x: (particle, key, t, value) => this.robotDirection === RobotDirection.Left ? this.x - 24 : this.x + 24,
+      y: (particle, key, t, value) => this.y - 12,
+      quantity: 1,
+      speed: 100,
+      angle: (particle, key, t, value) => this.robotDirection === RobotDirection.Left ? 180 - 20 : 20,  // TODO why is this highlighted as an error?
+      scale: { start: 0, end: 3 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 500,
+      frequency: 100,  // once every 200 ms
+      rotate: (particle, key, t, value) => this.robotDirection === RobotDirection.Left ? 180 - 20 : 20,
+    });
+    this.mindBeam.stop();
   }
 
   configure(): void {
@@ -34,17 +58,39 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(): void {
-    const canSeePlayer = false; // TODO: Implement this
-
-    if (canSeePlayer) {
-      this.attackPlayer();
+    this.watchForPlayer(); // TODO: make this not blocking
+    if (this.playerInLineOfSight) {
+      this.mindBeam.start();
+      this.attackPlayer(this.playerInLineOfSight);
     } else {
+      this.mindBeam.stop();
       this.defaultDirective();
     }
   }
 
-  attackPlayer(): void {
-    // TODO: Implement this
+  watchForPlayer(): Player | undefined {
+    const currentTime = this.scene.time.now;
+    if (currentTime - this.lastWatchTime < this.watchCoolDown) {
+      return;
+    }
+    this.lastWatchTime = currentTime;
+    const player = this.eye.getChildrenInLineOfSight(
+      this.x,
+      this.y,
+      this.robotDirection === RobotDirection.Left ? Phaser.Math.DegToRad(180 - 30) : Phaser.Math.DegToRad(10),
+      this.robotDirection === RobotDirection.Left ? Phaser.Math.DegToRad(180 - 10) : Phaser.Math.DegToRad(30),
+      120
+    ).find((child) => child instanceof Player) as Player;
+    this.playerInLineOfSight = player;
+  }
+
+  attackPlayer(player: Player): void {
+    this.setVelocityX(0); // Stand idle while attacking
+    const currentTime = this.scene.time.now;
+    if (currentTime - this.lastAttackTime > this.attackCooldown) {
+      this.lastAttackTime = currentTime;
+      player.takeDamage(1);
+    }
   }
 
   abstract defaultDirective(): void
@@ -52,6 +98,7 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
   static preloadAssets(scene: Phaser.Scene): void {
     scene.load.setPath('assets/images');
     scene.load.image('explosion_particle', 'explosion_particle.png');
+    scene.load.image('mindbeam_wave', 'mind_beam.png');
     scene.load.spritesheet('robot_spritesheet', 'robot_spritesheet.png', {
       frameWidth: 48,
       frameHeight: 80,
@@ -70,6 +117,7 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
     // Destroy the particle emitter after the explosion
     this.scene.time.delayedCall(250, () => {
       this.explosion.stop();
+      this.mindBeam.stop();
       super.destroy();
     });
   }

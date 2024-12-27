@@ -19,8 +19,8 @@ export class EyeManager {
         );
         const line = new Phaser.Geom.Line(x, y, x + distance, y);
         const detectedChildren = new Set<Phaser.GameObjects.GameObject>();
-        const angleStep = Phaser.Math.DegToRad(1); // 1 degree steps
-        const distStep = 5; // pixel steps
+        const angleStep = Phaser.Math.DegToRad(10); // 10 degree steps
+        const distStep = 16; // pixel steps
 
         for (let angle = startAngle; angle <= endAngle; angle += angleStep) {
             for (let dist = distStep; dist <= distance; dist += distStep) {
