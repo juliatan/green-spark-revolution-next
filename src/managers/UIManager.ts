@@ -20,6 +20,8 @@ export class UIManager {
   }
 
   update(player_health: number): void {
-    this.healthText.setText('Health: ' + player_health + '%');
+    if (player_health >= 0 ) {
+      this.healthText.setText('Health: ' + player_health + '%');
+    }
   }
 }

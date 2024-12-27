@@ -132,7 +132,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   takeDamage(damage: number): void {
     this.health -= damage;
     if (this.health <= 0) {
-      this.destroy();
+      // this.scene.scene.start('GameOver');
     }
   }
 

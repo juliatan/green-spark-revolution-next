@@ -89,7 +89,7 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
     const currentTime = this.scene.time.now;
     if (currentTime - this.lastAttackTime > this.attackCooldown) {
       this.lastAttackTime = currentTime;
-      player.takeDamage(1);
+      player.takeDamage(5);
     }
   }
 
