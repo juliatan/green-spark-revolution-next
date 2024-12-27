@@ -1,6 +1,7 @@
 import { WaterDroplet } from '@/entities/WaterDroplet';
 import { Player } from '@/entities/Player';
 import { Robot, SentryRobot, PatrolRobot, RobotDirection } from '@/entities/Robot';
+import { RainSeeder } from '@/entities/RainSeeder';
 import { EventBus } from '@/game/EventBus';
 import { LevelManager } from '@/managers/LevelManager';
 import { UIManager } from '@/managers/UIManager';
@@ -11,6 +12,7 @@ export class MainGame extends Scene {
   player: Player;
   robots: Phaser.Physics.Arcade.Group;
   water: Phaser.Physics.Arcade.Group;
+  rainSeeders: Phaser.Physics.Arcade.Group;
   camera: Phaser.Cameras.Scene2D.Camera;
   uiManager: UIManager;
 
@@ -84,14 +86,24 @@ export class MainGame extends Scene {
     this.robots.add(new SentryRobot(this, 700, 400, RobotDirection.Right));  // TODO: location from Tiled
     // Patrol Robots
     this.robots.add(new PatrolRobot(this, 1000, 400, RobotDirection.Left, 800, 1200));  // TODO: location and range from Tiled
+    // Rain Seeders
+    this.rainSeeders = this.physics.add.group({
+      classType: RainSeeder,
+      createCallback: (go) => {
+        (go as RainSeeder).configure();
+      }
+    });
+    this.rainSeeders.add(new RainSeeder(this, 725, 275, this.water));  // TODO: location from Tiled
   }
 
   private setupCollisions(): void {
     this.physics.add.collider(this.player, this.levelManager.layer);
     this.physics.add.collider(this.robots, this.levelManager.layer);
+    this.physics.add.collider(this.rainSeeders, this.levelManager.layer);
     this.physics.add.collider(this.robots, this.player);
     this.physics.add.collider(this.robots, this.robots);
     this.physics.add.collider(this.water, this.levelManager.layer);
+    // don't add water collision with player, as leads to weird edge cases behaviour while firing close to a wall
     this.physics.add.collider(this.water, this.robots, (waterDroplet, robot) => {
       (robot as Robot).takeDamage(1);
     });

@@ -1,4 +1,5 @@
 import { Player } from '@/entities/Player';
+import { RainSeeder } from '@/entities/RainSeeder';
 import { Robot } from '@/entities/Robot';
 import { WaterDroplet } from '@/entities/WaterDroplet';
 import { LevelManager } from '@/managers/LevelManager';
@@ -36,6 +37,7 @@ export class Preloader extends Scene {
     WaterDroplet.preloadAssets(this);
     Player.preloadAssets(this);
     Robot.preloadAssets(this);
+    RainSeeder.preloadAssets(this);
   }
 
   create() {

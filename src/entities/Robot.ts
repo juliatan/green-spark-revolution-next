@@ -30,6 +30,7 @@ export abstract class Robot extends Phaser.Physics.Arcade.Sprite {
     this.setBounce(0.0);
     this.setImmovable(true);
     this.setCollideWorldBounds(true);
+    this.setGravityY(600);
   }
 
   update(): void {

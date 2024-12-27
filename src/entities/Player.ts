@@ -69,7 +69,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Watergun cannot attack continuously, so we need to check the cooldown
     if (this.inputManager.isKeyPressed('a') && currentTime - this.lastAttackTime > this.attackCooldown) {
       this.lastAttackTime = currentTime;
-      console.log('Player attacks!');
       // Create water droplets
       const createWaterDroplet = () => {
         const waterDroplet = this.water.create(
